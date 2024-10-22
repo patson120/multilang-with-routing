@@ -1,7 +1,12 @@
+
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { routing } from '@/i18n/routing';
 import type { Metadata } from "next";
-import { getLocale } from "next-intl/server";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Language } from '@/types';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -21,23 +26,29 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
+  params: { locale }
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
+  params: { locale: string };
 }>) {
-  const locale = await getLocale()
+  // Ensure that the incoming `locale` is valid
+  if (!routing.locales.includes(locale as Language)) {
+    notFound();
+  }
 
   // Providing all messages to the client
   // side is the easiest way to get started
-  // const messages = await getMessages()
+  const messages = await getMessages();
+
   return (
     <html lang={locale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* <NextIntlClientProvider messages={messages}> */}
-          <main >
+        <NextIntlClientProvider messages={messages}>
+          <main>
             {children}
           </main>
-        {/* </NextIntlClientProvider> */}
+        </NextIntlClientProvider>
       </body>
     </html>
   );
